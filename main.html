@@ -800,6 +800,8 @@
                         <div style="text-align: center; color: #888;">No hay documentos recientes</div>
                     </div>
                 </div>
+
+
                 <!-- Configuración GitHub Oculta/Hardcoded -->
                 <div style="display: none;">
                     <div class="form-group">
@@ -1005,14 +1007,16 @@
                 "CUENTA CORRIENTE BANCAMIGA Nº 01720110791109143634",
                 "A NOMBRE DE SUMINISTROS MEYGO RIF J-410220430",
                 "TASA BCV DEL DIA"
-            ]
+            ],
+            clients: [], // Clientes sincronizados
+            documents: [] // Historial sincronizado
         };
 
         // Referencia a controlNumbers para compatibilidad con código existente
         let controlNumbers = persistentData.controlNumbers;
 
         let companyLogo = null;
-        let clients = JSON.parse(localStorage.getItem('meygoClients')) || [];
+        // let clients = ... // Eliminado, ahora es persistentData.clients
 
         // Función para formatear números con separadores de miles y decimales
         function formatNumber(number, decimals = 2) {
@@ -1024,10 +1028,7 @@
             });
         }
 
-        // Función para guardar clientes en localStorage
-        function saveClients() {
-            localStorage.setItem('meygoClients', JSON.stringify(clients));
-        }
+
 
         // ==========================================
         // LÓGICA GITHUB API
@@ -1215,6 +1216,9 @@
             if (products.length > 0) {
                 updateTotals();
             }
+
+            // Renderizar Historial
+            renderHistory();
         }
 
         // Renderizar Información de Pago
@@ -1252,7 +1256,8 @@
             const clientSelect = document.getElementById('clientSelect');
             clientSelect.innerHTML = '<option value="">Seleccione un cliente</option>';
 
-            clients.forEach((client, index) => {
+            const currentClients = persistentData.clients || [];
+            currentClients.forEach((client, index) => {
                 const option = document.createElement('option');
                 option.value = index;
                 option.textContent = client.name + (client.rif ? ` (${client.rif})` : '');
@@ -1262,8 +1267,9 @@
 
         // Función para cargar datos de un cliente
         function loadClientData(index) {
-            if (index >= 0 && index < clients.length) {
-                const client = clients[index];
+            const currentClients = persistentData.clients || [];
+            if (index >= 0 && index < currentClients.length) {
+                const client = currentClients[index];
                 document.getElementById('clientName').value = client.name || '';
                 document.getElementById('clientAddress').value = client.address || '';
                 document.getElementById('clientRIF').value = client.rif || '';
@@ -1281,22 +1287,24 @@
                 return;
             }
 
+            if (!persistentData.clients) persistentData.clients = [];
+
             // Verificar si el cliente ya existe
-            const existingIndex = clients.findIndex(client =>
+            const existingIndex = persistentData.clients.findIndex(client =>
                 client.name.toLowerCase() === name.toLowerCase()
             );
 
             if (existingIndex !== -1) {
                 // Actualizar cliente existente
-                clients[existingIndex] = { name, address, rif };
+                persistentData.clients[existingIndex] = { name, address, rif };
                 alert('Cliente actualizado correctamente');
             } else {
                 // Agregar nuevo cliente
-                clients.push({ name, address, rif });
+                persistentData.clients.push({ name, address, rif });
                 alert('Cliente guardado correctamente');
             }
 
-            saveClients();
+            saveToGitHub();
             loadClients();
         }
 
@@ -2082,6 +2090,21 @@
 
             }
 
+            // Guardar en Historial
+            saveToHistory({
+                date: formattedDate,
+                type: documentType,
+                number: controlNumber,
+                client: clientName,
+                total: currentPaymentMethod === 'bolivares' ? `BS ${formatNumber(totalBS)}` : `$${formatNumber(totalUSD)}`,
+                productsSnapshot: JSON.parse(JSON.stringify(products)),
+                clientSnapshot: {
+                    name: clientName,
+                    address: clientAddress,
+                    rif: clientRIF
+                }
+            });
+
             // Incrementar contador después de generar PDF
             controlNumbers[currentDocType] = parseInt(controlNumbers[currentDocType]) + 1;
             saveToGitHub();
@@ -2116,6 +2139,67 @@
                 updateTableStructure();
             }
         }
+        // --- FUNCIONES DE HISTORIAL ---
+
+        function saveToHistory(docData) {
+            if (!persistentData.documents) persistentData.documents = [];
+            persistentData.documents.unshift(docData);
+            if (persistentData.documents.length > 50) persistentData.documents.pop();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (!list) return; // Si no existe el UI no hacemos nada
+
+            if (!persistentData.documents || persistentData.documents.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: #888;">No hay documentos recientes</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            persistentData.documents.forEach((doc, index) => {
+                const item = document.createElement('div');
+                item.style.padding = '8px';
+                item.style.borderBottom = '1px solid #eee';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.style.backgroundColor = index % 2 === 0 ? '#fff' : '#f9f9f9';
+
+                let iconClass = 'fa-file';
+                if (doc.type === 'factura') iconClass = 'fa-receipt';
+                else if (doc.type === 'presupuesto') iconClass = 'fa-file-invoice-dollar';
+                else if (doc.type === 'nota') iconClass = 'fa-truck';
+
+                item.innerHTML = `
+                <div style="flex: 1;">
+                    <div><strong style="color: var(--color-primary);"><i class="fas ${iconClass}"></i> ${doc.number}</strong> <span style="font-size: 11px; color: #666;">(${doc.date})</span></div>
+                    <div style="font-size: 12px;">${doc.client}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: bold; font-size: 12px;">${doc.total}</div>
+                    <button class="btn btn-sm btn-info" onclick="loadHistoryItem(${index})" style="padding: 2px 6px; font-size: 11px; margin-top: 2px;">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+            `;
+                list.appendChild(item);
+            });
+        }
+
+        window.loadHistoryItem = function (index) {
+            if (confirm('¿Desea CARGAR este documento? Se reemplazarán los datos actuales.')) {
+                const doc = persistentData.documents[index];
+                document.getElementById('clientName').value = doc.clientSnapshot.name || '';
+                document.getElementById('clientAddress').value = doc.clientSnapshot.address || '';
+                document.getElementById('clientRIF').value = doc.clientSnapshot.rif || '';
+                products = JSON.parse(JSON.stringify(doc.productsSnapshot));
+                updateProductsTable();
+                updateTotals();
+                alert('Datos cargados. Verifique el Número de Control.');
+            }
+        };
     </script>
 
 </html>
