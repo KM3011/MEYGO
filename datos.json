@@ -1,0 +1,13 @@
+{
+  "controlNumbers": {
+    "presupuesto": 0,
+    "factura": 0,
+    "nota": 0
+  },
+  "dollarRate": 36.5,
+  "paymentInfo": [
+    "CUENTA CORRIENTE BANCAMIGA Nº 01720110791109143634",
+    "A NOMBRE DE SUMINISTROS MEYGO RIF J-410220430",
+    "TASA BCV DEL DIA"
+  ]
+}
