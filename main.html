@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -620,6 +619,58 @@
             border-bottom: none;
         }
 
+        .supplier-section {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: var(--color-light-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--color-warning);
+        }
+
+        .supplier-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .status-bar {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: var(--color-success);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .data-management {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--color-light-bg);
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+        }
+
+        .data-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .rate-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             .header-container {
                 flex-direction: column;
@@ -784,15 +835,14 @@
                     <div class="form-group" style="flex: 1;">
                         <label for="dollarRate">Tasa del Dólar (BCV)</label>
                         <input type="number" id="dollarRate" step="0.01" min="0" value="36.50" placeholder="Ej: 36.50">
+                        <div class="rate-info">Usada solo para conversión en pago mixto</div>
                     </div>
                 </div>
-                <!-- URL Google Script Eliminado -->
                 <div class="form-group">
                     <label for="ivaPercentage">Porcentaje de IVA</label>
                     <input type="number" id="ivaPercentage" step="0.01" min="0" value="16" placeholder="Ej: 16%">
                 </div>
 
-                <!-- Sección de Historial -->
                 <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--color-border);">
                     <h3><i class="fas fa-history"></i> Historial Reciente</h3>
                     <div id="historyList"
@@ -800,23 +850,35 @@
                         <div style="text-align: center; color: #888;">No hay documentos recientes</div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-
-                <!-- Configuración GitHub Oculta/Hardcoded -->
-                <div style="display: none;">
-                    <div class="form-group">
-                        <label for="githubToken">Token GitHub</label>
-                        <input type="password" id="githubToken" value="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">
-                    </div>
-                    <div class="form-group">
-                        <label for="githubUser">Usuario GitHub</label>
-                        <input type="text" id="githubUser" value="KM3011">
-                    </div>
-                    <div class="form-group">
-                        <label for="githubRepo">Repositorio GitHub</label>
-                        <input type="text" id="githubRepo" value="MEYGO">
-                    </div>
+        <!-- Sección: Gestión de Productos/Proveedores -->
+        <div class="supplier-section">
+            <h2><i class="fas fa-industry"></i> Gestión de Productos/Proveedores</h2>
+            <div class="supplier-form">
+                <div class="form-group">
+                    <label for="supplierName">Nombre del Proveedor</label>
+                    <input type="text" id="supplierName" placeholder="Ej: Distribuidora XYZ">
                 </div>
+                <div class="form-group">
+                    <label for="productCatalog">Producto/Servicio</label>
+                    <input type="text" id="productCatalog" placeholder="Ej: Material de oficina">
+                </div>
+                <div class="form-group">
+                    <label for="productCost">Costo Unitario ($)</label>
+                    <input type="number" id="productCost" step="0.01" min="0" placeholder="Ej: 50.00">
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button id="addSupplierProduct" class="btn btn-warning">
+                        <i class="fas fa-plus"></i> Agregar al Catálogo
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <select id="catalogSelect" style="width: 100%;">
+                    <option value="">Seleccione del catálogo para agregar rápido</option>
+                </select>
             </div>
         </div>
 
@@ -838,6 +900,7 @@
                 <div class="form-group">
                     <label for="productPrice" id="productPriceLabel">Precio Unitario ($)</label>
                     <input type="number" id="productPrice" step="0.01" min="0" placeholder="Ej: 100.00">
+                    <div class="rate-info" id="priceRateInfo"></div>
                 </div>
                 <div class="checkbox-group">
                     <input type="checkbox" id="productIVA">
@@ -900,12 +963,31 @@
             </div>
         </div>
 
+        <!-- Gestión de Datos -->
+        <div class="data-management">
+            <h3><i class="fas fa-database"></i> Gestión de Datos Locales</h3>
+            <p style="font-size: 13px; margin-bottom: 15px; color: #666;">
+                Los datos se almacenan automáticamente en su navegador. Puede respaldarlos o restaurarlos cuando lo necesite.
+            </p>
+            <div class="data-actions">
+                <button id="backupData" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Respaldar Datos
+                </button>
+                <button id="restoreData" class="btn btn-warning">
+                    <i class="fas fa-upload"></i> Restaurar Datos
+                </button>
+                <button id="clearAllData" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Limpiar Todo
+                </button>
+            </div>
+        </div>
+
         <div class="actions">
             <button id="generatePDF" class="btn btn-success">
                 <i class="fas fa-file-pdf"></i> Generar PDF
             </button>
             <button id="clearAll" class="btn btn-danger">
-                <i class="fas fa-trash-alt"></i> Limpiar Todo
+                <i class="fas fa-trash-alt"></i> Limpiar Documento
             </button>
         </div>
     </div>
@@ -976,6 +1058,12 @@
         </div>
     </div>
 
+    <!-- Barra de estado para mostrar notificaciones -->
+    <div class="status-bar" id="statusBar">
+        <i class="fas fa-check-circle"></i>
+        <span id="statusText">Datos guardados</span>
+    </div>
+
     <script>
         // Variables globales
         let products = [];
@@ -987,15 +1075,7 @@
         let currentPaymentMethod = 'dolares';
         let currentDocType = 'presupuesto';
 
-        // Configuración GitHub HARDCODED
-        let githubConfig = {
-            token: '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',
-            user: 'KM3011',
-            repo: 'MEYGO',
-            filename: 'datos.json'
-        };
-
-        // Datos Persistentes (Local + Nube)
+        // Datos Persistentes (LocalStorage)
         let persistentData = {
             controlNumbers: {
                 presupuesto: 0,
@@ -1008,15 +1088,30 @@
                 "A NOMBRE DE SUMINISTROS MEYGO RIF J-410220430",
                 "TASA BCV DEL DIA"
             ],
-            clients: [], // Clientes sincronizados
-            documents: [] // Historial sincronizado
+            clients: [],
+            documents: [],
+            suppliers: [],
+            catalog: []
         };
 
-        // Referencia a controlNumbers para compatibilidad con código existente
+        // Referencia a controlNumbers para compatibilidad
         let controlNumbers = persistentData.controlNumbers;
 
-        let companyLogo = null;
-        // let clients = ... // Eliminado, ahora es persistentData.clients
+        // Función para mostrar notificaciones
+        function showStatus(message, type = 'success') {
+            const statusBar = document.getElementById('statusBar');
+            const statusText = document.getElementById('statusText');
+            
+            statusBar.style.backgroundColor = type === 'success' ? 'var(--color-success)' : 
+                                            type === 'error' ? 'var(--color-danger)' : 
+                                            'var(--color-warning)';
+            statusText.textContent = message;
+            statusBar.style.display = 'flex';
+            
+            setTimeout(() => {
+                statusBar.style.display = 'none';
+            }, 3000);
+        }
 
         // Función para formatear números con separadores de miles y decimales
         function formatNumber(number, decimals = 2) {
@@ -1028,176 +1123,137 @@
             });
         }
 
-
-
         // ==========================================
-        // LÓGICA GITHUB API
+        // LÓGICA DE ALMACENAMIENTO LOCAL
         // ==========================================
 
-        // Guardar configuración de GitHub (YA NO ES NECESARIO PERO SE MANTIENE LA FUNCIÓN POR COMPATIBILIDAD)
-        function saveGithubConfig() {
-            // Hardcoded - no hace nada
-            alert('Configuración de GitHub está predefinida en el sistema.');
-            syncWithGitHub();
+        // Guardar datos en localStorage
+        function saveToLocalStorage() {
+            try {
+                // Actualizar datos antes de guardar
+                persistentData.dollarRate = parseFloat(document.getElementById('dollarRate').value) || 36.50;
+                persistentData.ivaPercentage = parseFloat(document.getElementById('ivaPercentage').value) || 16;
+                
+                localStorage.setItem('meygoData', JSON.stringify(persistentData));
+                showStatus('Datos guardados localmente');
+                return true;
+            } catch (error) {
+                console.error('Error al guardar en localStorage:', error);
+                showStatus('Error al guardar datos', 'error');
+                return false;
+            }
         }
 
-        // Sincronizar datos (Leer y luego Escribir si es necesario)
-        async function syncWithGitHub() {
-            if (!githubConfig.token || !githubConfig.user || !githubConfig.repo) return;
-
-            const apiUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/${githubConfig.filename}`;
-
+        // Cargar datos desde localStorage
+        function loadFromLocalStorage() {
             try {
-                // 1. GET: Intentar obtener el archivo actual
-                const response = await fetch(apiUrl, {
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-
-                if (response.status === 200) {
-                    const data = await response.json();
-                    const content = atob(data.content); // Decodificar Base64
-                    const cloudData = JSON.parse(content);
-
-                    // Actualizar datos locales con los de la nube
-                    persistentData = { ...persistentData, ...cloudData };
-                    controlNumbers = persistentData.controlNumbers; // Actualizar referencia
-
-                    // Guardar SHA para poder hacer update
-                    githubConfig.sha = data.sha;
-
-                    console.log('Datos sincronizados desde GitHub:', persistentData);
+                const savedData = localStorage.getItem('meygoData');
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    
+                    // Mezclar datos guardados con defaults
+                    persistentData = {
+                        ...persistentData,
+                        ...parsedData
+                    };
+                    
+                    // Asegurar que todas las propiedades existan
+                    if (!persistentData.controlNumbers) persistentData.controlNumbers = { presupuesto: 0, factura: 0, nota: 0 };
+                    if (!persistentData.clients) persistentData.clients = [];
+                    if (!persistentData.documents) persistentData.documents = [];
+                    if (!persistentData.suppliers) persistentData.suppliers = [];
+                    if (!persistentData.catalog) persistentData.catalog = [];
+                    
+                    controlNumbers = persistentData.controlNumbers;
+                    
                     updateUIFromData();
-
-                } else if (response.status === 404) {
-                    // Archivo no existe, lo creamos
-                    console.log('Archivo no existe en GitHub, creando...');
-                    await saveToGitHub();
-                } else {
-                    console.error('Error Git:', response.status);
+                    showStatus('Datos cargados correctamente');
+                    return true;
                 }
             } catch (error) {
-                console.error('Error conexión GitHub:', error);
+                console.error('Error al cargar desde localStorage:', error);
             }
+            return false;
         }
 
-        // Guardar en GitHub (PUT)
-        async function saveToGitHub() {
-            if (!githubConfig.token || !githubConfig.user || !githubConfig.repo) {
-                // Si no hay nube, guardamos en localStorage
-                localStorage.setItem('meygoPersistentData', JSON.stringify(persistentData));
-                return;
-            }
-
-            // Actualizar referencia local antes de guardar
-            localStorage.setItem('meygoPersistentData', JSON.stringify(persistentData));
-
-            const apiUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/${githubConfig.filename}`;
-            const contentEncoded = btoa(JSON.stringify(persistentData, null, 2));
-
-            const body = {
-                message: "Actualización de datos (Meygo)",
-                content: contentEncoded
-            };
-
-            // Intentar obtener SHA si no lo tenemos
-            if (!githubConfig.sha) {
-                try {
-                    const checkResp = await fetch(apiUrl, {
-                        headers: { 'Authorization': `token ${githubConfig.token}` }
-                    });
-                    if (checkResp.ok) {
-                        const checkData = await checkResp.json();
-                        githubConfig.sha = checkData.sha;
-                    }
-                } catch (e) { }
-            }
-
-            if (githubConfig.sha) {
-                body.sha = githubConfig.sha;
-            }
-
+        // Respaldar datos (descargar archivo JSON)
+        function backupData() {
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    githubConfig.sha = data.content.sha;
-                    console.log('Datos guardados en GitHub');
-
-                    // Mostrar feedback visual discreto
-                    const saveBtn = document.getElementById('saveCloudConfig');
-                    if (saveBtn) {
-                        const originalText = saveBtn.innerHTML;
-                        saveBtn.innerHTML = '<i class="fas fa-check"></i> Guardado';
-                        setTimeout(() => saveBtn.innerHTML = originalText, 2000);
-                    }
-
-                } else {
-                    console.error('Error guardando en GitHub:', await response.text());
-                }
+                const dataStr = JSON.stringify(persistentData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `meygo_backup_${new Date().toISOString().slice(0,10)}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showStatus('Respaldo descargado correctamente');
             } catch (error) {
-                console.error('Error red GitHub:', error);
+                console.error('Error al respaldar datos:', error);
+                showStatus('Error al respaldar datos', 'error');
             }
         }
 
-        // Guardar PDF en GitHub
-        async function savePDFToGitHub(pdfBlob, fileName) {
-            if (!githubConfig.token || !githubConfig.user || !githubConfig.repo) return;
-
-            const reader = new FileReader();
-            reader.readAsDataURL(pdfBlob);
-
-            reader.onloadend = async function () {
-                const base64data = reader.result.split(',')[1];
-                const path = `pdfs/${fileName}`; // Carpeta pdfs/
-                const apiUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/${path}`;
-
-                const body = {
-                    message: `Guardando PDF: ${fileName}`,
-                    content: base64data
+        // Restaurar datos desde archivo
+        function restoreData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const restoredData = JSON.parse(e.target.result);
+                        
+                        // Validar estructura básica
+                        if (restoredData && typeof restoredData === 'object') {
+                            if (confirm('¿Está seguro de restaurar estos datos? Se sobrescribirán los datos actuales.')) {
+                                persistentData = restoredData;
+                                controlNumbers = persistentData.controlNumbers;
+                                saveToLocalStorage();
+                                updateUIFromData();
+                                showStatus('Datos restaurados correctamente');
+                            }
+                        } else {
+                            showStatus('Archivo no válido', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error al restaurar datos:', error);
+                        showStatus('Error al restaurar datos', 'error');
+                    }
                 };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
 
-                // Verificar si el archivo ya existe (aunque no debería por el timestamp/nombre único, es buena práctica)
-                try {
-                    const checkResp = await fetch(apiUrl, {
-                        headers: { 'Authorization': `token ${githubConfig.token}` }
-                    });
-                    if (checkResp.ok) {
-                        const checkData = await checkResp.json();
-                        body.sha = checkData.sha;
-                    }
-
-                    const response = await fetch(apiUrl, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${githubConfig.token}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(body)
-                    });
-
-                    if (response.ok) {
-                        console.log('PDF guardado exitosamente en GitHub');
-                        alert('PDF generado y respaldado en GitHub correctamente.');
-                    } else {
-                        console.error('Error guardando PDF en GitHub:', await response.text());
-                        alert('PDF generado localmente, pero hubo un error al subirlo a GitHub. Verifique su token y permisos.');
-                    }
-
-                } catch (error) {
-                    console.error('Error subiendo PDF:', error);
-                    alert('Error de conexión al subir el PDF a GitHub.');
-                }
+        // Limpiar todos los datos
+        function clearAllData() {
+            if (confirm('¿ESTÁ SEGURO? Esto eliminará TODOS los datos (clientes, historial, catálogo). Esta acción no se puede deshacer.')) {
+                localStorage.removeItem('meygoData');
+                persistentData = {
+                    controlNumbers: { presupuesto: 0, factura: 0, nota: 0 },
+                    dollarRate: 36.50,
+                    paymentInfo: [
+                        "CUENTA CORRIENTE BANCAMIGA Nº 01720110791109143634",
+                        "A NOMBRE DE SUMINISTROS MEYGO RIF J-410220430",
+                        "TASA BCV DEL DIA"
+                    ],
+                    clients: [],
+                    documents: [],
+                    suppliers: [],
+                    catalog: []
+                };
+                controlNumbers = persistentData.controlNumbers;
+                updateUIFromData();
+                showStatus('Todos los datos han sido eliminados', 'warning');
             }
         }
 
@@ -1205,6 +1261,9 @@
         function updateUIFromData() {
             // Tasa Dólar
             document.getElementById('dollarRate').value = persistentData.dollarRate;
+            
+            // Porcentaje de IVA
+            document.getElementById('ivaPercentage').value = persistentData.ivaPercentage || 16;
 
             // Crear Payment Info
             renderPaymentInfo();
@@ -1219,6 +1278,15 @@
 
             // Renderizar Historial
             renderHistory();
+
+            // Cargar clientes
+            loadClients();
+
+            // Cargar catálogo
+            loadCatalog();
+
+            // Actualizar display según método de pago
+            updateDisplay();
         }
 
         // Renderizar Información de Pago
@@ -1229,7 +1297,6 @@
             persistentData.paymentInfo.forEach(line => {
                 const div = document.createElement('div');
                 div.innerHTML = `<i class="fas fa-check-circle"></i> ${line}`;
-                // Estilo para alinear
                 div.style.display = 'flex';
                 div.style.alignItems = 'center';
                 div.style.gap = '10px';
@@ -1238,14 +1305,9 @@
             });
         }
 
-        // ==========================================
-        // FIN LÓGICA GITHUB
-        // ==========================================
-
         // Función auxiliar para actualizar el display del número de control
         function updateControlNumberDisplay() {
             const currentYear = new Date().getFullYear().toString().slice(-2);
-            // El número mostrado es el SIGUIENTE (actual + 1)
             const nextNumber = parseInt(controlNumbers[currentDocType]) + 1;
             document.getElementById('controlNumberDisplay').textContent =
                 `${nextNumber.toString().padStart(4, '0')}/${currentYear}`;
@@ -1297,18 +1359,152 @@
             if (existingIndex !== -1) {
                 // Actualizar cliente existente
                 persistentData.clients[existingIndex] = { name, address, rif };
-                alert('Cliente actualizado correctamente');
+                showStatus('Cliente actualizado correctamente');
             } else {
                 // Agregar nuevo cliente
                 persistentData.clients.push({ name, address, rif });
-                alert('Cliente guardado correctamente');
+                showStatus('Cliente guardado correctamente');
             }
 
-            saveToGitHub();
+            saveToLocalStorage();
             loadClients();
         }
 
-        // Función para actualizar la estructura de la tabla según el método de pago
+        // ==========================================
+        // GESTIÓN DE CATÁLOGO DE PRODUCTOS/PROVEEDORES
+        // ==========================================
+
+        // Cargar catálogo en el selector
+        function loadCatalog() {
+            const catalogSelect = document.getElementById('catalogSelect');
+            catalogSelect.innerHTML = '<option value="">Seleccione del catálogo para agregar rápido</option>';
+
+            const currentCatalog = persistentData.catalog || [];
+            currentCatalog.forEach((item, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${item.product} (${item.supplier}) - $${formatNumber(item.cost)}`;
+                catalogSelect.appendChild(option);
+            });
+        }
+
+        // Agregar producto al catálogo
+        function addToCatalog() {
+            const supplier = document.getElementById('supplierName').value.trim();
+            const product = document.getElementById('productCatalog').value.trim();
+            const cost = parseFloat(document.getElementById('productCost').value);
+
+            if (!supplier || !product || isNaN(cost) || cost <= 0) {
+                alert('Por favor complete todos los campos del catálogo con valores válidos');
+                return;
+            }
+
+            if (!persistentData.catalog) persistentData.catalog = [];
+
+            // Verificar si el producto ya existe en el catálogo
+            const existingIndex = persistentData.catalog.findIndex(item =>
+                item.product.toLowerCase() === product.toLowerCase() &&
+                item.supplier.toLowerCase() === supplier.toLowerCase()
+            );
+
+            if (existingIndex !== -1) {
+                // Actualizar producto existente
+                persistentData.catalog[existingIndex] = { supplier, product, cost };
+                showStatus('Producto actualizado en catálogo');
+            } else {
+                // Agregar nuevo producto
+                persistentData.catalog.push({ supplier, product, cost });
+                showStatus('Producto agregado al catálogo');
+            }
+
+            saveToLocalStorage();
+            loadCatalog();
+            
+            // Limpiar campos
+            document.getElementById('productCatalog').value = '';
+            document.getElementById('productCost').value = '';
+        }
+
+        // Cargar producto desde catálogo
+        function loadProductFromCatalog(index) {
+            const currentCatalog = persistentData.catalog || [];
+            if (index >= 0 && index < currentCatalog.length) {
+                const item = currentCatalog[index];
+                document.getElementById('productName').value = item.product;
+                
+                // Determinar qué precio mostrar según el método de pago
+                if (currentPaymentMethod === 'bolivares') {
+                    // Para pago en bolívares, mostrar el costo en BS (asumiendo que el catálogo está en USD)
+                    const dollarRate = parseFloat(document.getElementById('dollarRate').value) || 1;
+                    document.getElementById('productPrice').value = (item.cost * dollarRate).toFixed(2);
+                } else {
+                    // Para pago en dólares o mixto, mostrar en USD
+                    document.getElementById('productPrice').value = item.cost;
+                }
+                
+                document.getElementById('productQuantity').value = 1;
+                document.getElementById('productUnit').value = 'Unidad';
+                showStatus('Producto cargado desde catálogo');
+            }
+        }
+
+        // ==========================================
+        // FUNCIONES PRINCIPALES DEL SISTEMA
+        // ==========================================
+
+        // Cambiar tipo de documento
+        function changeDocumentType(newDocType) {
+            // Limpiar todos los datos del documento anterior
+            products = [];
+            document.getElementById('productsList').innerHTML = '';
+            document.getElementById('productName').value = '';
+            document.getElementById('productQuantity').value = '1';
+            document.getElementById('productUnit').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productIVA').checked = false;
+
+            // Actualizar el tipo de documento actual
+            currentDocType = newDocType;
+
+            // Actualizar el título del documento
+            const documentTitle = document.getElementById('documentTitle');
+            switch (currentDocType) {
+                case 'factura':
+                    documentTitle.textContent = 'FACTURA';
+                    break;
+                case 'nota':
+                    documentTitle.textContent = 'NOTA DE ENTREGA';
+                    break;
+                default:
+                    documentTitle.textContent = 'PRESUPUESTO';
+            }
+
+            updateControlNumberDisplay();
+            updateTotals();
+            updateTableStructure();
+        }
+
+        // Cambiar método de pago
+        function changePaymentMethod(newPaymentMethod) {
+            if (currentPaymentMethod !== newPaymentMethod) {
+                if (products.length > 0) {
+                    if (!confirm('Al cambiar el método de pago se limpiarán los productos actuales. ¿Desea continuar?')) {
+                        return false;
+                    }
+                }
+                
+                currentPaymentMethod = newPaymentMethod;
+                products = [];
+                updateProductsTable();
+                updateTotals();
+                updateDisplay();
+                updateTableStructure();
+                return true;
+            }
+            return false;
+        }
+
+        // Actualizar la estructura de la tabla según el método de pago
         function updateTableStructure() {
             const tableHead = document.getElementById('productsTableHead');
             const tableBody = document.getElementById('productsList');
@@ -1354,259 +1550,6 @@
             updateProductsTable();
         }
 
-        // Función para cambiar el tipo de documento
-        function changeDocumentType(newDocType) {
-            // Limpiar todos los datos del documento anterior
-            products = [];
-            document.getElementById('productsList').innerHTML = '';
-            document.getElementById('clientName').value = '';
-            document.getElementById('clientAddress').value = '';
-            document.getElementById('clientRIF').value = '';
-            document.getElementById('productName').value = '';
-            document.getElementById('productQuantity').value = '1';
-            document.getElementById('productUnit').value = '';
-            document.getElementById('productPrice').value = '';
-            document.getElementById('productIVA').checked = false;
-
-            // Actualizar el tipo de documento actual
-            currentDocType = newDocType;
-
-            // Actualizar el título del documento
-            const documentTitle = document.getElementById('documentTitle');
-            switch (currentDocType) {
-                case 'factura':
-                    documentTitle.textContent = 'FACTURA';
-                    break;
-                case 'nota':
-                    documentTitle.textContent = 'NOTA DE ENTREGA';
-                    break;
-                default:
-                    documentTitle.textContent = 'PRESUPUESTO';
-            }
-
-            // Generar nuevo número de control para este tipo de documento
-            // No incrementamos aquí, solo se muestra el "siguiente" número disponible
-            // Se incrementa REALMENTE al limpiar/generar el documento o al cargar la página si ya se usó
-            // Pero en la lógica actual (lazy increment), controlNumbers guarda el ÚLTIMO USADO.
-
-            // Nota: La lógica original incrementaba al cambiar de tipo. Vamos a mantener consistencia
-            // mostrando el "siguiente" número disponible basándonos en el último guardado.
-
-            updateControlNumberDisplay();
-
-            // Guardar los números de control actualizados
-            saveControlNumbers();
-
-            // Actualizar los totales
-            updateTotals();
-
-            // Actualizar la estructura de la tabla si es necesario
-            updateTableStructure();
-        }
-
-        // Esperar a que se cargue el DOM - REMOVED WRAPPER FOR GLOBAL SCOPE
-        // document.addEventListener('DOMContentLoaded', function () {
-        // Inicializar elementos
-        const addProductBtn = document.getElementById('addProduct');
-        const generatePDFBtn = document.getElementById('generatePDF');
-        const clearAllBtn = document.getElementById('clearAll');
-        const dollarRateInput = document.getElementById('dollarRate');
-        const ivaPercentageInput = document.getElementById('ivaPercentage');
-        const docTypeButtons = document.querySelectorAll('.doc-type-btn');
-        const paymentMethods = document.querySelectorAll('.payment-method');
-        const documentDateInput = document.getElementById('documentDate');
-        const controlNumberDisplay = document.getElementById('controlNumberDisplay');
-        const dollarRateContainer = document.getElementById('dollarRateContainer');
-        const productPriceLabel = document.getElementById('productPriceLabel');
-        const priceUnitHeader = document.getElementById('priceUnitHeader');
-        const priceTotalHeader = document.getElementById('priceTotalHeader');
-        const currencyDisplay = document.getElementById('currencyDisplay');
-        const documentTitle = document.getElementById('documentTitle');
-        const editControlBtn = document.getElementById('editControlBtn');
-        const controlNumberModal = document.getElementById('controlNumberModal');
-        const closeModal = document.getElementById('closeModal');
-        const saveControlNumber = document.getElementById('saveControlNumber');
-        const cancelControlNumber = document.getElementById('cancelControlNumber');
-        const controlNumberInputModal = document.getElementById('controlNumberInput');
-        const clientSelect = document.getElementById('clientSelect');
-        const clearClientBtn = document.getElementById('clearClientBtn');
-        const saveClientBtn = document.getElementById('saveClientBtn');
-        // Elementos Modal Payment
-        const editPaymentInfoBtn = document.getElementById('editPaymentInfoBtn');
-        const paymentInfoModal = document.getElementById('paymentInfoModal');
-        const closePaymentModal = document.getElementById('closePaymentModal');
-        const savePaymentInfoModal = document.getElementById('savePaymentInfoModal');
-        const addPaymentLineBtn = document.getElementById('addPaymentLineBtn');
-
-        // Cargar Configuración GitHub
-        if (document.getElementById('githubToken')) {
-            document.getElementById('githubToken').value = githubConfig.token;
-            // GitHub credentials hardcoded - UI elements removed
-        }
-
-        // Intentar cargar datos locales primero (fallback)
-        const localPersistent = localStorage.getItem('meygoPersistentData');
-        if (localPersistent) {
-            persistentData = JSON.parse(localPersistent);
-            controlNumbers = persistentData.controlNumbers;
-            updateUIFromData();
-        }
-
-        // Sincronizar con GitHub al inicio
-        syncWithGitHub();
-
-        // Cargar clientes
-        loadClients();
-
-        // Establecer fecha actual
-        // Establecer fecha actual si el elemento existe
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        if (documentDateInput) {
-            documentDateInput.value = formattedDate;
-        }
-
-        // Generar número de control inicial para el tipo de documento actual
-        updateControlNumberDisplay();
-
-        // Guardar los números de control actualizados
-        // saveControlNumbers(); // Eliminado porque no está definido -> saveToGitHub() maneja esto ahora.
-        saveToGitHub();
-
-        // Event Listeners
-        addProductBtn.addEventListener('click', addProduct);
-        generatePDFBtn.addEventListener('click', function () {
-            const docTypeText = document.querySelector('.doc-type-btn.active').textContent;
-            if (confirm(`¿Está seguro que desea generar el ${docTypeText}?`)) {
-                generatePDF(currentDocType);
-            }
-        });
-        clearAllBtn.addEventListener('click', clearAll);
-        dollarRateInput.addEventListener('input', updateTotals);
-        ivaPercentageInput.addEventListener('input', updateTotals);
-
-        // Cambiar tipo de documento
-        docTypeButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                docTypeButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                changeDocumentType(this.getAttribute('data-doctype'));
-            });
-        });
-
-        // Cambiar método de pago
-        paymentMethods.forEach(method => {
-            method.addEventListener('click', function () {
-                paymentMethods.forEach(m => m.classList.remove('active'));
-                this.classList.add('active');
-                currentPaymentMethod = this.getAttribute('data-payment');
-                updateDisplay();
-                updateTableStructure();
-            });
-        });
-
-        // Modal para editar número de control
-        editControlBtn.addEventListener('click', function () {
-            controlNumberInputModal.value = controlNumberDisplay.textContent;
-            controlNumberModal.style.display = 'flex';
-        });
-
-        closeModal.addEventListener('click', function () {
-            controlNumberModal.style.display = 'none';
-        });
-
-        cancelControlNumber.addEventListener('click', function () {
-            controlNumberModal.style.display = 'none';
-        });
-
-        saveControlNumber.addEventListener('click', function () {
-            if (controlNumberInputModal.value.trim()) {
-                controlNumberDisplay.textContent = controlNumberInputModal.value.trim();
-                controlNumberModal.style.display = 'none';
-            } else {
-                alert('Por favor ingrese un número de control válido');
-            }
-        });
-
-        // Gestión de clientes
-        clientSelect.addEventListener('change', function () {
-            const selectedIndex = parseInt(this.value);
-            if (!isNaN(selectedIndex) && selectedIndex >= 0) {
-                loadClientData(selectedIndex);
-            }
-        });
-
-        clearClientBtn.addEventListener('click', function () {
-            clientSelect.value = '';
-            document.getElementById('clientName').value = '';
-            document.getElementById('clientAddress').value = '';
-            document.getElementById('clientRIF').value = '';
-        });
-
-        saveClientBtn.addEventListener('click', saveCurrentClient);
-
-
-
-        // Guardar Configuración Cloud (Auto-save hardcoded)
-        // document.getElementById('saveCloudConfig').addEventListener('click', saveGithubConfig);
-
-        // Guardar Tasa Dólar al cambiar
-        dollarRateInput.addEventListener('change', function () {
-            persistentData.dollarRate = parseFloat(this.value) || 0;
-            saveToGitHub();
-        });
-
-        // Lógica Modal Payment Info
-        editPaymentInfoBtn.addEventListener('click', function () {
-            const list = document.getElementById('paymentLinesList');
-            list.innerHTML = '';
-            persistentData.paymentInfo.forEach(text => {
-                addPaymentLineInput(text);
-            });
-            paymentInfoModal.style.display = 'flex';
-        });
-
-        closePaymentModal.addEventListener('click', () => paymentInfoModal.style.display = 'none');
-
-        addPaymentLineBtn.addEventListener('click', () => addPaymentLineInput(''));
-
-        savePaymentInfoModal.addEventListener('click', function () {
-            const inputs = document.querySelectorAll('#paymentLinesList input');
-            const newLines = [];
-            inputs.forEach(input => {
-                if (input.value.trim()) newLines.push(input.value.trim());
-            });
-            persistentData.paymentInfo = newLines;
-            saveToGitHub();
-            renderPaymentInfo();
-            paymentInfoModal.style.display = 'none';
-        });
-
-        function addPaymentLineInput(value) {
-            const div = document.createElement('div');
-            div.className = 'form-group checkbox-group';
-            div.style.marginBottom = '10px';
-
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = value;
-            input.placeholder = 'Información de pago...';
-
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-danger';
-            btn.innerHTML = '<i class="fas fa-trash"></i>';
-            btn.style.padding = '5px 10px';
-            btn.onclick = () => div.remove();
-
-            div.appendChild(input);
-            div.appendChild(btn);
-
-            document.getElementById('paymentLinesList').appendChild(div);
-        }
-
-        // Actualizar visualización según método de pago
-        updateDisplay();
-
         // Función para agregar producto
         function addProduct() {
             const name = document.getElementById('productName').value.trim();
@@ -1634,24 +1577,67 @@
             const dollarRate = parseFloat(document.getElementById('dollarRate').value) || 1;
             const ivaPercentage = parseFloat(document.getElementById('ivaPercentage').value) || 0;
 
-            // Obtener precio en dólares
-            const priceUSD = parseFloat(document.getElementById('productPrice').value);
+            // Obtener precio según el método de pago
+            let priceUSD, priceBS;
 
-            if (isNaN(priceUSD) || priceUSD < 0) {
-                alert('Por favor ingrese un precio válido en dólares');
-                return;
+            if (currentPaymentMethod === 'bolivares') {
+                // El precio ingresado es en BS directamente
+                priceBS = parseFloat(document.getElementById('productPrice').value);
+                if (isNaN(priceBS) || priceBS < 0) {
+                    alert('Por favor ingrese un precio válido en bolívares');
+                    return;
+                }
+                // Para pago en BS, el precio en USD no se calcula (se mantiene como 0 o se podría calcular inversamente si se necesita)
+                priceUSD = 0; // No se usa para pago en BS
+            } else if (currentPaymentMethod === 'dolares') {
+                // El precio ingresado es en USD directamente
+                priceUSD = parseFloat(document.getElementById('productPrice').value);
+                if (isNaN(priceUSD) || priceUSD < 0) {
+                    alert('Por favor ingrese un precio válido en dólares');
+                    return;
+                }
+                // Para pago en USD, el precio en BS no se calcula
+                priceBS = 0; // No se usa para pago en USD
+            } else {
+                // Pago mixto: precio ingresado en USD, se convierte a BS
+                priceUSD = parseFloat(document.getElementById('productPrice').value);
+                if (isNaN(priceUSD) || priceUSD < 0) {
+                    alert('Por favor ingrese un precio válido en dólares');
+                    return;
+                }
+                // Convertir a BS usando la tasa actual
+                priceBS = priceUSD * dollarRate;
             }
 
-            // Calcular precio en bolívares según la tasa
-            const priceBS = priceUSD * dollarRate;
-
             // Calcular subtotales
-            const productSubtotalUSD = quantity * priceUSD;
-            const productSubtotalBS = quantity * priceBS;
+            let productSubtotalUSD, productSubtotalBS;
+            
+            if (currentPaymentMethod === 'bolivares') {
+                productSubtotalBS = quantity * priceBS;
+                productSubtotalUSD = 0; // No se usa
+            } else if (currentPaymentMethod === 'dolares') {
+                productSubtotalUSD = quantity * priceUSD;
+                productSubtotalBS = 0; // No se usa
+            } else {
+                // Pago mixto
+                productSubtotalUSD = quantity * priceUSD;
+                productSubtotalBS = quantity * priceBS;
+            }
 
             // Calcular IVA si aplica
-            const productIVA = hasIVA ? productSubtotalUSD * (ivaPercentage / 100) : 0;
-            const productIVABS = hasIVA ? productSubtotalBS * (ivaPercentage / 100) : 0;
+            let productIVA, productIVABS;
+            
+            if (currentPaymentMethod === 'bolivares') {
+                productIVABS = hasIVA ? productSubtotalBS * (ivaPercentage / 100) : 0;
+                productIVA = 0; // No se usa
+            } else if (currentPaymentMethod === 'dolares') {
+                productIVA = hasIVA ? productSubtotalUSD * (ivaPercentage / 100) : 0;
+                productIVABS = 0; // No se usa
+            } else {
+                // Pago mixto
+                productIVA = hasIVA ? productSubtotalUSD * (ivaPercentage / 100) : 0;
+                productIVABS = hasIVA ? productSubtotalBS * (ivaPercentage / 100) : 0;
+            }
 
             // Crear objeto producto
             const product = {
@@ -1664,7 +1650,9 @@
                 subtotalBS: productSubtotalBS,
                 hasIVA,
                 ivaUSD: productIVA,
-                ivaBS: productIVABS
+                ivaBS: productIVABS,
+                paymentMethod: currentPaymentMethod, // Guardar el método de pago usado
+                dollarRateAtAddition: currentPaymentMethod === 'mixto' ? dollarRate : null // Guardar tasa si es mixto
             };
 
             // Agregar a la lista
@@ -1680,6 +1668,8 @@
             document.getElementById('productUnit').value = '';
             document.getElementById('productPrice').value = '';
             document.getElementById('productIVA').checked = false;
+            
+            showStatus('Producto agregado correctamente');
         }
 
         // Función para actualizar la tabla de productos
@@ -1692,46 +1682,59 @@
 
                 if (currentPaymentMethod === 'bolivares') {
                     row.innerHTML = `
-                            <td>${product.name}</td>
-                            <td>${formatNumber(product.quantity, 0)}</td>
-                            <td>${product.unit}</td>
-                            <td>BS ${formatNumber(product.priceBS)}</td>
-                            <td>BS ${formatNumber(product.subtotalBS)}</td>
-                            <td>
-                                <button class="btn btn-danger" data-index="${index}">
-                                    <i class="fas fa-trash"></i> Eliminar
-                                </button>
-                            </td>
-                        `;
+                        <td>${product.name}</td>
+                        <td>${formatNumber(product.quantity, 0)}</td>
+                        <td>${product.unit}</td>
+                        <td>BS ${formatNumber(product.priceBS)}</td>
+                        <td>BS ${formatNumber(product.subtotalBS)}</td>
+                        <td>
+                            <button class="btn btn-danger" data-index="${index}">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </td>
+                    `;
                 } else if (currentPaymentMethod === 'dolares') {
                     row.innerHTML = `
-                            <td>${product.name}</td>
-                            <td>${formatNumber(product.quantity, 0)}</td>
-                            <td>${product.unit}</td>
-                            <td>$${formatNumber(product.priceUSD)}</td>
-                            <td>$${formatNumber(product.subtotalUSD)}</td>
-                            <td>
-                                <button class="btn btn-danger" data-index="${index}">
-                                    <i class="fas fa-trash"></i> Eliminar
-                                </button>
-                            </td>
-                        `;
+                        <td>${product.name}</td>
+                        <td>${formatNumber(product.quantity, 0)}</td>
+                        <td>${product.unit}</td>
+                        <td>$${formatNumber(product.priceUSD)}</td>
+                        <td>$${formatNumber(product.subtotalUSD)}</td>
+                        <td>
+                            <button class="btn btn-danger" data-index="${index}">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </td>
+                    `;
                 } else {
-                    // Pago mixto: mostrar columnas separadas para USD y BS
+                    // Pago mixto
+                    // Si el producto fue agregado en otro método de pago, recalcular con tasa actual
+                    let displayPriceBS = product.priceBS;
+                    let displaySubtotalBS = product.subtotalBS;
+                    let displayIvaBS = product.ivaBS;
+                    
+                    // Si el producto no tiene tasa guardada o fue agregado en otro modo, recalcular
+                    if (!product.dollarRateAtAddition || product.paymentMethod !== 'mixto') {
+                        const dollarRate = parseFloat(document.getElementById('dollarRate').value) || 1;
+                        displayPriceBS = product.priceUSD * dollarRate;
+                        displaySubtotalBS = product.subtotalUSD * dollarRate;
+                        displayIvaBS = product.ivaUSD * dollarRate;
+                    }
+                    
                     row.innerHTML = `
-                            <td>${product.name}</td>
-                            <td>${formatNumber(product.quantity, 0)}</td>
-                            <td>${product.unit}</td>
-                            <td>$${formatNumber(product.priceUSD)}</td>
-                            <td>BS ${formatNumber(product.priceBS)}</td>
-                            <td>$${formatNumber(product.subtotalUSD)}</td>
-                            <td>BS ${formatNumber(product.subtotalBS)}</td>
-                            <td>
-                                <button class="btn btn-danger" data-index="${index}">
-                                    <i class="fas fa-trash"></i> Eliminar
-                                </button>
-                            </td>
-                        `;
+                        <td>${product.name}</td>
+                        <td>${formatNumber(product.quantity, 0)}</td>
+                        <td>${product.unit}</td>
+                        <td>$${formatNumber(product.priceUSD)}</td>
+                        <td>BS ${formatNumber(displayPriceBS)}</td>
+                        <td>$${formatNumber(product.subtotalUSD)}</td>
+                        <td>BS ${formatNumber(displaySubtotalBS)}</td>
+                        <td>
+                            <button class="btn btn-danger" data-index="${index}">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </td>
+                    `;
                 }
 
                 productsList.appendChild(row);
@@ -1752,26 +1755,62 @@
                 products.splice(index, 1);
                 updateProductsTable();
                 updateTotals();
+                showStatus('Producto eliminado');
             }
         }
 
         // Función para actualizar los totales
         function updateTotals() {
-            // Calcular subtotales en USD y BS
-            subtotalUSD = products.reduce((total, product) => total + product.subtotalUSD, 0);
-            subtotalBS = products.reduce((total, product) => total + product.subtotalBS, 0);
-
-            // Obtener tasa de dólar y porcentaje de IVA
+            // Obtener tasa de dólar actual para conversiones
             const dollarRate = parseFloat(document.getElementById('dollarRate').value) || 1;
             const ivaPercentage = parseFloat(document.getElementById('ivaPercentage').value) || 0;
+            
             document.getElementById('ivaPercent').textContent = ivaPercentage;
 
-            // Calcular IVA solo para productos que lo tengan aplicado
-            ivaAmount = products.reduce((total, product) => total + (product.hasIVA ? product.ivaUSD : 0), 0);
-            const ivaAmountBS = products.reduce((total, product) => total + (product.hasIVA ? product.ivaBS : 0), 0);
-
-            totalUSD = subtotalUSD + ivaAmount;
-            totalBS = subtotalBS + ivaAmountBS;
+            // Calcular subtotales y totales según el método de pago
+            if (currentPaymentMethod === 'bolivares') {
+                // Solo BS
+                subtotalBS = products.reduce((total, product) => total + product.subtotalBS, 0);
+                subtotalUSD = 0;
+                
+                ivaAmount = products.reduce((total, product) => total + (product.hasIVA ? product.ivaBS : 0), 0);
+                totalBS = subtotalBS + ivaAmount;
+                totalUSD = 0;
+            } else if (currentPaymentMethod === 'dolares') {
+                // Solo USD
+                subtotalUSD = products.reduce((total, product) => total + product.subtotalUSD, 0);
+                subtotalBS = 0;
+                
+                ivaAmount = products.reduce((total, product) => total + (product.hasIVA ? product.ivaUSD : 0), 0);
+                totalUSD = subtotalUSD + ivaAmount;
+                totalBS = 0;
+            } else {
+                // Mixto: calcular en ambas monedas
+                subtotalUSD = products.reduce((total, product) => total + product.subtotalUSD, 0);
+                ivaAmount = products.reduce((total, product) => total + (product.hasIVA ? product.ivaUSD : 0), 0);
+                totalUSD = subtotalUSD + ivaAmount;
+                
+                // Para BS, recalcular usando la tasa actual
+                subtotalBS = products.reduce((total, product) => {
+                    if (product.dollarRateAtAddition && product.paymentMethod === 'mixto') {
+                        // Si fue agregado en mixto con tasa específica, usar esa
+                        return total + product.subtotalBS;
+                    } else {
+                        // Recalcular con tasa actual
+                        return total + (product.subtotalUSD * dollarRate);
+                    }
+                }, 0);
+                
+                const ivaAmountBS = products.reduce((total, product) => {
+                    if (product.dollarRateAtAddition && product.paymentMethod === 'mixto') {
+                        return total + (product.hasIVA ? product.ivaBS : 0);
+                    } else {
+                        return total + (product.hasIVA ? product.ivaUSD * dollarRate : 0);
+                    }
+                }, 0);
+                
+                totalBS = subtotalBS + ivaAmountBS;
+            }
 
             // Actualizar UI
             updateDisplay();
@@ -1780,92 +1819,97 @@
         // Función para actualizar la visualización según el método de pago
         function updateDisplay() {
             const dollarRate = parseFloat(document.getElementById('dollarRate').value) || 1;
+            const productPriceLabel = document.getElementById('productPriceLabel');
+            const priceRateInfo = document.getElementById('priceRateInfo');
+            const dollarRateContainer = document.getElementById('dollarRateContainer');
 
             // Mostrar/ocultar campos según método de pago
             if (currentPaymentMethod === 'bolivares') {
                 dollarRateContainer.style.display = 'none';
                 productPriceLabel.textContent = 'Precio Unitario (BS)';
+                productPriceLabel.style.color = 'var(--color-warning)';
+                priceRateInfo.textContent = 'Ingrese el precio directamente en bolívares';
+                priceRateInfo.style.color = 'var(--color-warning)';
 
                 // Actualizar valores en BS
-                subtotalDisplay.textContent = `BS ${formatNumber(subtotalBS)}`;
-                document.getElementById('ivaAmount').textContent = `BS ${formatNumber(products.reduce((total, product) => total + (product.hasIVA ? product.ivaBS : 0), 0))}`;
+                document.getElementById('subtotalDisplay').textContent = `BS ${formatNumber(subtotalBS)}`;
+                document.getElementById('ivaAmount').textContent = `BS ${formatNumber(ivaAmount)}`;
                 document.getElementById('totalAmount').textContent = `BS ${formatNumber(totalBS)}`;
 
                 // Ocultar conversión de moneda
-                currencyDisplay.innerHTML = '';
+                document.getElementById('currencyDisplay').innerHTML = '';
             } else if (currentPaymentMethod === 'dolares') {
                 dollarRateContainer.style.display = 'none';
                 productPriceLabel.textContent = 'Precio Unitario ($)';
+                productPriceLabel.style.color = 'var(--color-success)';
+                priceRateInfo.textContent = 'Ingrese el precio directamente en dólares';
+                priceRateInfo.style.color = 'var(--color-success)';
 
                 // Actualizar valores en USD
-                subtotalDisplay.textContent = `$${formatNumber(subtotalUSD)}`;
+                document.getElementById('subtotalDisplay').textContent = `$${formatNumber(subtotalUSD)}`;
                 document.getElementById('ivaAmount').textContent = `$${formatNumber(ivaAmount)}`;
                 document.getElementById('totalAmount').textContent = `$${formatNumber(totalUSD)}`;
 
                 // Ocultar conversión de moneda
-                currencyDisplay.innerHTML = '';
+                document.getElementById('currencyDisplay').innerHTML = '';
             } else {
                 // Pago mixto
                 dollarRateContainer.style.display = 'flex';
                 productPriceLabel.textContent = 'Precio Unitario ($)';
+                productPriceLabel.style.color = 'var(--color-primary)';
+                priceRateInfo.textContent = `El precio en BS se calculará automáticamente usando la tasa: ${formatNumber(dollarRate)} Bs/$`;
+                priceRateInfo.style.color = 'var(--color-primary)';
 
                 // Actualizar valores en USD
-                subtotalDisplay.textContent = `$${formatNumber(subtotalUSD)}`;
+                document.getElementById('subtotalDisplay').textContent = `$${formatNumber(subtotalUSD)}`;
                 document.getElementById('ivaAmount').textContent = `$${formatNumber(ivaAmount)}`;
                 document.getElementById('totalAmount').textContent = `$${formatNumber(totalUSD)}`;
 
+                // Calcular iva en BS para mostrar
+                const ivaAmountBS = products.reduce((total, product) => {
+                    if (product.dollarRateAtAddition && product.paymentMethod === 'mixto') {
+                        return total + (product.hasIVA ? product.ivaBS : 0);
+                    } else {
+                        return total + (product.hasIVA ? product.ivaUSD * dollarRate : 0);
+                    }
+                }, 0);
+
                 // Mostrar conversión de moneda
-                currencyDisplay.innerHTML = `
-                        <div class="dual-currency">
-                            <div class="currency-box">
-                                <div class="currency-label">TOTAL EN DÓLARES</div>
-                                <div class="currency-value">$${formatNumber(totalUSD)}</div>
-                            </div>
-                            <div class="currency-box">
-                                <div class="currency-label">TOTAL EN BOLÍVARES</div>
-                                <div class="currency-value">BS ${formatNumber(totalBS)}</div>
-                            </div>
-                            <div class="currency-box">
-                                <div class="currency-label">TASA BCV</div>
-                                <div class="currency-value">${formatNumber(dollarRate)} Bs/$</div>
+                document.getElementById('currencyDisplay').innerHTML = `
+                    <div class="dual-currency">
+                        <div class="currency-box">
+                            <div class="currency-label">TOTAL EN DÓLARES</div>
+                            <div class="currency-value">$${formatNumber(totalUSD)}</div>
+                        </div>
+                        <div class="currency-box">
+                            <div class="currency-label">TOTAL EN BOLÍVARES</div>
+                            <div class="currency-value">BS ${formatNumber(totalBS)}</div>
+                            <div style="font-size: 11px; color: #666; margin-top: 3px;">
+                                Tasa: ${formatNumber(dollarRate)} Bs/$
                             </div>
                         </div>
-                    `;
+                    </div>
+                `;
             }
         }
 
-        // Función para generar PDF
+        // ==========================================
+        // FUNCIÓN PARA GENERAR PDF OPTIMIZADO
+        // ==========================================
+
         function generatePDF(documentType) {
             if (products.length === 0) {
                 alert('No hay productos para generar el documento');
                 return;
             }
 
-            const controlNumber = controlNumberDisplay.textContent || 'Sin número';
+            const controlNumber = document.getElementById('controlNumberDisplay').textContent || 'Sin número';
             const clientName = document.getElementById('clientName').value || 'Sin cliente';
             const clientAddress = document.getElementById('clientAddress').value || '';
             const clientRIF = document.getElementById('clientRIF').value || '';
             const dollarRate = parseFloat(document.getElementById('dollarRate').value) || 1;
             const ivaPercentage = parseFloat(document.getElementById('ivaPercentage').value) || 0;
-            const documentDate = new Date(document.getElementById('documentDate').value);
-            const validityDays = (document.getElementById('validityDays') ? parseInt(document.getElementById('validityDays').value) : 30) || 30;
-
-            // Formatear fecha
-            const formattedDate = documentDate.toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-            });
-
-            // Calcular fecha de vencimiento
-            const expiryDate = new Date(documentDate);
-            expiryDate.setDate(expiryDate.getDate() + validityDays);
-            const formattedExpiryDate = expiryDate.toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-            });
-
+            
             // Determinar el tipo de documento
             let documentTitle = '';
             switch (documentType) {
@@ -1881,214 +1925,268 @@
 
             // Crear PDF con jsPDF
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
 
             // Configurar fuente
             pdf.setFont('helvetica');
 
-            // Agregar encabezado profesional
+            // ========== ENCABEZADO ==========
+            // Fondo azul
             pdf.setFillColor(30, 75, 130);
-            pdf.rect(0, 0, 210, 40, 'F');
+            pdf.rect(0, 0, pageWidth, 40, 'F');
 
-            // Logo con fondo redondeado
+            // Logo
             const logoImg = new Image();
             logoImg.src = 'logomeygo.png';
-            logoImg.onload = function () {
-                // Fondo redondeado blanco detrás del logo
+            
+            // Intentar cargar logo, si falla usar texto
+            try {
+                // Fondo blanco redondeado para el logo
                 pdf.setFillColor(255, 255, 255);
                 pdf.circle(27.5, 22.5, 13, 'F');
-
-                // Agregar logo
                 pdf.addImage(logoImg, 'PNG', 15, 10, 25, 25);
-                continuePDFGeneration();
-            };
-
-            logoImg.onerror = function () {
-                // Fondo redondeado blanco detrás del logo
+            } catch (e) {
+                // Logo alternativo
                 pdf.setFillColor(255, 255, 255);
                 pdf.circle(27.5, 22.5, 13, 'F');
-
                 pdf.setTextColor(30, 75, 130);
                 pdf.setFontSize(10);
                 pdf.text('MEYGO', 27.5, 22, { align: 'center' });
-                continuePDFGeneration();
-            };
-
-            function continuePDFGeneration() {
-                // Información de la empresa
-                pdf.setTextColor(255, 255, 255);
-                pdf.setFontSize(16);
-                pdf.setFont(undefined, 'bold');
-                pdf.text("SUMINISTROS MEYGO, C.A.", 105, 18, { align: 'center' });
-
-                pdf.setFontSize(10);
-                pdf.setFont(undefined, 'normal');
-                pdf.text("RIF: J-410220430", 105, 24, { align: 'center' });
-                pdf.text("Urbanización Caña de Azúcar, sector 6 Bloque 5", 105, 30, { align: 'center' });
-                pdf.text("Maracay - Aragua. Venezuela | Tel: (414) 7327301", 105, 36, { align: 'center' });
-
-                // Título del documento
-                pdf.setFillColor(232, 241, 255);
-                pdf.rect(0, 40, 210, 15, 'F');
-                pdf.setTextColor(30, 75, 130);
-                pdf.setFontSize(14);
-                pdf.setFont(undefined, 'bold');
-                pdf.text(documentTitle, 105, 50, { align: 'center' });
-
-                // Información del documento
-                pdf.setFontSize(10);
-                pdf.setTextColor(0, 0, 0);
-                pdf.setFont(undefined, 'normal');
-                pdf.text(`Número: ${controlNumber}`, 20, 65);
-                pdf.text(`Fecha: ${formattedDate}`, 20, 71);
-                pdf.text(`Válido hasta: ${formattedExpiryDate}`, 20, 77);
-
-                // Información del cliente
-                pdf.text(`Cliente: ${clientName}`, 120, 65);
-                if (clientRIF) pdf.text(`RIF/Cédula: ${clientRIF}`, 120, 71);
-                if (clientAddress) pdf.text(`Dirección: ${clientAddress}`, 120, 77);
-
-                // Línea separadora
-                pdf.setDrawColor(30, 75, 130);
-                pdf.line(14, 85, 196, 85);
-
-                // Preparar datos para la tabla según el método de pago
-                let tableColumn, tableData;
-
-                if (currentPaymentMethod === 'bolivares') {
-                    tableColumn = ['Descripción', 'Cantidad', 'Unidad', 'Precio Unitario BS', 'Precio Total BS'];
-                    tableData = products.map(product => [
-                        product.name,
-                        formatNumber(product.quantity, 0),
-                        product.unit,
-                        `BS ${formatNumber(product.priceBS)}`,
-                        `BS ${formatNumber(product.subtotalBS)}`
-                    ]);
-                } else if (currentPaymentMethod === 'dolares') {
-                    tableColumn = ['Descripción', 'Cantidad', 'Unidad', 'Precio Unitario $', 'Precio Total $'];
-                    tableData = products.map(product => [
-                        product.name,
-                        formatNumber(product.quantity, 0),
-                        product.unit,
-                        `$${formatNumber(product.priceUSD)}`,
-                        `$${formatNumber(product.subtotalUSD)}`
-                    ]);
-                } else {
-                    // Pago mixto: columnas separadas para USD y BS
-                    tableColumn = ['Descripción', 'Cantidad', 'Unidad', 'Precio Unitario $', 'Precio Unitario BS', 'Precio Total $', 'Precio Total BS'];
-                    tableData = products.map(product => [
-                        product.name,
-                        formatNumber(product.quantity, 0),
-                        product.unit,
-                        `$${formatNumber(product.priceUSD)}`,
-                        `BS ${formatNumber(product.priceBS)}`,
-                        `$${formatNumber(product.subtotalUSD)}`,
-                        `BS ${formatNumber(product.subtotalBS)}`
-                    ]);
-                }
-
-                // Agregar tabla
-                pdf.autoTable({
-                    startY: 90,
-                    head: [tableColumn],
-                    body: tableData,
-                    theme: 'grid',
-                    headStyles: {
-                        fillColor: [30, 75, 130],
-                        textColor: [255, 255, 255],
-                        fontStyle: 'bold',
-                        fontSize: 9
-                    },
-                    bodyStyles: {
-                        fontSize: 8,
-                        font: 'helvetica'
-                    },
-                    alternateRowStyles: {
-                        fillColor: [232, 241, 255]
-                    },
-                    margin: { top: 90 },
-                    tableWidth: 'wrap'
-                });
-
-                // Obtener la posición Y final de la tabla
-                const finalY = pdf.lastAutoTable.finalY + 10;
-
-                pdf.setFontSize(10);
-                pdf.setTextColor(0, 0, 0);
-
-                if (currentPaymentMethod === 'bolivares') {
-                    pdf.text(`Subtotal: BS ${formatNumber(subtotalBS)}`, 160, finalY, { align: 'right' });
-                    pdf.text(`IVA (${ivaPercentage}%): BS ${formatNumber(products.reduce((total, product) => total + (product.hasIVA ? product.ivaBS : 0), 0))}`, 160, finalY + 6, { align: 'right' });
-                    pdf.setFontSize(12);
-                    pdf.setFont(undefined, 'bold');
-                    pdf.setTextColor(30, 75, 130);
-                    pdf.text(`TOTAL GENERAL: BS ${formatNumber(totalBS)}`, 160, finalY + 16, { align: 'right' });
-                } else if (currentPaymentMethod === 'dolares') {
-                    pdf.text(`Subtotal: $${formatNumber(subtotalUSD)}`, 160, finalY, { align: 'right' });
-                    pdf.text(`IVA (${ivaPercentage}%): $${formatNumber(ivaAmount)}`, 160, finalY + 6, { align: 'right' });
-                    pdf.setFontSize(12);
-                    pdf.setFont(undefined, 'bold');
-                    pdf.setTextColor(30, 75, 130);
-                    pdf.text(`TOTAL GENERAL: $${formatNumber(totalUSD)}`, 160, finalY + 16, { align: 'right' });
-                } else {
-                    pdf.text(`Subtotal: $${formatNumber(subtotalUSD)} | BS ${formatNumber(subtotalBS)}`, 140, finalY, { align: 'right' });
-                    pdf.text(`IVA (${ivaPercentage}%): $${formatNumber(ivaAmount)} | BS ${formatNumber(products.reduce((total, product) => total + (product.hasIVA ? product.ivaBS : 0), 0))}`, 140, finalY + 6, { align: 'right' });
-                    pdf.setFontSize(12);
-                    pdf.setFont(undefined, 'bold');
-                    pdf.setTextColor(30, 75, 130);
-                    pdf.text(`TOTAL GENERAL: $${formatNumber(totalUSD)} | BS ${formatNumber(totalBS)}`, 140, finalY + 16, { align: 'right' });
-                }
-
-                // Información de pago
-                pdf.setFillColor(232, 245, 233);
-                // Altura dinámica basada en líneas (aprox 7mm por línea + padding)
-                const paymentHeight = 20 + (persistentData.paymentInfo.length * 6);
-                pdf.rect(14, finalY + 25, 182, paymentHeight, 'F');
-                pdf.setDrawColor(76, 175, 80);
-                pdf.rect(14, finalY + 25, 182, paymentHeight);
-
-                pdf.setFontSize(9);
-                pdf.setTextColor(0, 0, 0);
-                pdf.setFont(undefined, 'bold');
-                pdf.text("INFORMACIÓN DE PAGO:", 20, finalY + 35);
-                pdf.setFont(undefined, 'normal');
-
-                let payY = finalY + 41;
-                persistentData.paymentInfo.forEach(line => {
-                    pdf.text(line, 20, payY);
-                    payY += 6;
-                });
-
-                if (currentPaymentMethod !== 'bolivares') {
-                    pdf.text(`TASA BCV: ${formatNumber(dollarRate)} Bs/$`, 20, payY);
-                }
-
-                // Firma (centrada en la parte inferior relativa al bloque de pago)
-                const signY = finalY + paymentHeight + 40;
-                pdf.setFont(undefined, 'bold');
-                pdf.text("Beatriz Veiga", 105, finalY + 77, { align: 'center' });
-                pdf.text("Presidente", 105, finalY + 83, { align: 'center' });
-                pdf.setFont(undefined, 'normal');
-                pdf.text("Tel: (58) 414-7327301", 105, finalY + 89, { align: 'center' });
-
-                // Footer
-                pdf.setFontSize(8);
-                pdf.setTextColor(100, 100, 100);
-                pdf.text("Suministros Meygo, C.A. - Especialistas en suministros industriales y de oficina", 105, 280, { align: 'center' });
-                pdf.text("Email: suministrosmeygo.ca@gmail.com | Web: www.suministrosmeygo.com.ve", 105, 285, { align: 'center' });
-
-                // Guardar PDF
-                // Guardar PDF y Subir
-                const fileName = `${clientName.replace(/\s+/g, '_')}_${controlNumber.replace('/', '_')}.pdf`;
-
-                // 1. Guardar localmente
-                pdf.save(fileName);
-
-                // 2. Subir a GitHub
-                const pdfBlob = pdf.output('blob');
-                savePDFToGitHub(pdfBlob, fileName);
-
             }
+
+            // Información de la empresa
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text("SUMINISTROS MEYGO, C.A.", pageWidth / 2, 18, { align: 'center' });
+
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text("RIF: J-410220430", pageWidth / 2, 24, { align: 'center' });
+            pdf.text("Urbanización Caña de Azúcar, sector 6 Bloque 5", pageWidth / 2, 30, { align: 'center' });
+            pdf.text("Maracay - Aragua. Venezuela | Tel: (414) 7327301", pageWidth / 2, 36, { align: 'center' });
+
+            // Título del documento
+            pdf.setFillColor(232, 241, 255);
+            pdf.rect(0, 40, pageWidth, 15, 'F');
+            pdf.setTextColor(30, 75, 130);
+            pdf.setFontSize(14);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(documentTitle, pageWidth / 2, 50, { align: 'center' });
+
+            // ========== INFORMACIÓN DEL DOCUMENTO ==========
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            // Fecha de vencimiento (30 días)
+            const expiryDate = new Date(today);
+            expiryDate.setDate(expiryDate.getDate() + 30);
+            const formattedExpiryDate = expiryDate.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            pdf.setFontSize(10);
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`Número: ${controlNumber}`, 20, 65);
+            pdf.text(`Fecha: ${formattedDate}`, 20, 71);
+            pdf.text(`Válido hasta: ${formattedExpiryDate}`, 20, 77);
+
+            // Información del cliente
+            pdf.text(`Cliente: ${clientName}`, 120, 65);
+            if (clientRIF) pdf.text(`RIF/Cédula: ${clientRIF}`, 120, 71);
+            if (clientAddress) {
+                const addressLines = pdf.splitTextToSize(`Dirección: ${clientAddress}`, 70);
+                pdf.text(addressLines[0], 120, 77);
+                if (addressLines[1]) pdf.text(addressLines[1], 120, 83);
+            }
+
+            // Línea separadora
+            pdf.setDrawColor(30, 75, 130);
+            pdf.line(14, 85, pageWidth - 14, 85);
+
+            // ========== TABLA DE PRODUCTOS ==========
+            // Preparar datos para la tabla según el método de pago
+            let tableColumn, tableData;
+
+            if (currentPaymentMethod === 'bolivares') {
+                tableColumn = ['Descripción', 'Cantidad', 'Unidad', 'Precio Unitario BS', 'Precio Total BS'];
+                tableData = products.map(product => [
+                    product.name,
+                    formatNumber(product.quantity, 0),
+                    product.unit,
+                    `BS ${formatNumber(product.priceBS)}`,
+                    `BS ${formatNumber(product.subtotalBS)}`
+                ]);
+            } else if (currentPaymentMethod === 'dolares') {
+                tableColumn = ['Descripción', 'Cantidad', 'Unidad', 'Precio Unitario $', 'Precio Total $'];
+                tableData = products.map(product => [
+                    product.name,
+                    formatNumber(product.quantity, 0),
+                    product.unit,
+                    `$${formatNumber(product.priceUSD)}`,
+                    `$${formatNumber(product.subtotalUSD)}`
+                ]);
+            } else {
+                // Pago mixto
+                tableColumn = ['Descripción', 'Cantidad', 'Unidad', 'Precio Unitario $', 'Precio Unitario BS', 'Precio Total $', 'Precio Total BS'];
+                tableData = products.map(product => {
+                    // Recalcular precio BS si es necesario
+                    let displayPriceBS = product.priceBS;
+                    let displaySubtotalBS = product.subtotalBS;
+                    
+                    if (!product.dollarRateAtAddition || product.paymentMethod !== 'mixto') {
+                        displayPriceBS = product.priceUSD * dollarRate;
+                        displaySubtotalBS = product.subtotalUSD * dollarRate;
+                    }
+                    
+                    return [
+                        product.name,
+                        formatNumber(product.quantity, 0),
+                        product.unit,
+                        `$${formatNumber(product.priceUSD)}`,
+                        `BS ${formatNumber(displayPriceBS)}`,
+                        `$${formatNumber(product.subtotalUSD)}`,
+                        `BS ${formatNumber(displaySubtotalBS)}`
+                    ];
+                });
+            }
+
+            // Agregar tabla optimizada
+            pdf.autoTable({
+                startY: 90,
+                head: [tableColumn],
+                body: tableData,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [30, 75, 130],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 9,
+                    halign: 'center'
+                },
+                bodyStyles: {
+                    fontSize: 8,
+                    font: 'helvetica',
+                    textColor: [0, 0, 0],
+                    lineWidth: 0.1
+                },
+                alternateRowStyles: {
+                    fillColor: [232, 241, 255]
+                },
+                margin: { left: 14, right: 14 },
+                tableWidth: 'auto',
+                styles: {
+                    overflow: 'linebreak',
+                    cellWidth: 'wrap'
+                },
+                columnStyles: {
+                    0: { cellWidth: 'auto' },
+                    1: { cellWidth: 20, halign: 'center' },
+                    2: { cellWidth: 25, halign: 'center' }
+                },
+                didDrawPage: function(data) {
+                    // Encabezado en cada página
+                    if (data.pageNumber > 1) {
+                        pdf.setFontSize(10);
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.setTextColor(30, 75, 130);
+                        pdf.text(`${documentTitle} - ${controlNumber}`, pageWidth / 2, 20, { align: 'center' });
+                        pdf.text(`Cliente: ${clientName}`, pageWidth / 2, 26, { align: 'center' });
+                    }
+                }
+            });
+
+            // ========== TOTALES ==========
+            const finalY = pdf.lastAutoTable.finalY + 10;
+
+            pdf.setFontSize(10);
+            pdf.setTextColor(0, 0, 0);
+
+            if (currentPaymentMethod === 'bolivares') {
+                pdf.text(`Subtotal: BS ${formatNumber(subtotalBS)}`, pageWidth - 20, finalY, { align: 'right' });
+                pdf.text(`IVA (${ivaPercentage}%): BS ${formatNumber(ivaAmount)}`, pageWidth - 20, finalY + 6, { align: 'right' });
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(30, 75, 130);
+                pdf.text(`TOTAL GENERAL: BS ${formatNumber(totalBS)}`, pageWidth - 20, finalY + 16, { align: 'right' });
+            } else if (currentPaymentMethod === 'dolares') {
+                pdf.text(`Subtotal: $${formatNumber(subtotalUSD)}`, pageWidth - 20, finalY, { align: 'right' });
+                pdf.text(`IVA (${ivaPercentage}%): $${formatNumber(ivaAmount)}`, pageWidth - 20, finalY + 6, { align: 'right' });
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(30, 75, 130);
+                pdf.text(`TOTAL GENERAL: $${formatNumber(totalUSD)}`, pageWidth - 20, finalY + 16, { align: 'right' });
+            } else {
+                // Calcular iva en BS para mostrar en PDF
+                const ivaAmountBS = products.reduce((total, product) => {
+                    if (product.dollarRateAtAddition && product.paymentMethod === 'mixto') {
+                        return total + (product.hasIVA ? product.ivaBS : 0);
+                    } else {
+                        return total + (product.hasIVA ? product.ivaUSD * dollarRate : 0);
+                    }
+                }, 0);
+                
+                pdf.text(`Subtotal: $${formatNumber(subtotalUSD)} | BS ${formatNumber(subtotalBS)}`, pageWidth - 20, finalY, { align: 'right' });
+                pdf.text(`IVA (${ivaPercentage}%): $${formatNumber(ivaAmount)} | BS ${formatNumber(ivaAmountBS)}`, pageWidth - 20, finalY + 6, { align: 'right' });
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(30, 75, 130);
+                pdf.text(`TOTAL GENERAL: $${formatNumber(totalUSD)} | BS ${formatNumber(totalBS)}`, pageWidth - 20, finalY + 16, { align: 'right' });
+            }
+
+            // ========== INFORMACIÓN DE PAGO ==========
+            const paymentStartY = finalY + 25;
+            const paymentHeight = 20 + (persistentData.paymentInfo.length * 6);
+            
+            pdf.setFillColor(232, 245, 233);
+            pdf.roundedRect(14, paymentStartY, pageWidth - 28, paymentHeight, 2, 2, 'F');
+            pdf.setDrawColor(76, 175, 80);
+            pdf.setLineWidth(0.5);
+            pdf.roundedRect(14, paymentStartY, pageWidth - 28, paymentHeight, 2, 2, 'S');
+
+            pdf.setFontSize(9);
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text("INFORMACIÓN DE PAGO:", 20, paymentStartY + 10);
+            pdf.setFont('helvetica', 'normal');
+
+            let payY = paymentStartY + 16;
+            persistentData.paymentInfo.forEach(line => {
+                pdf.text(line, 20, payY);
+                payY += 6;
+            });
+
+            if (currentPaymentMethod === 'mixto') {
+                pdf.text(`TASA BCV: ${formatNumber(dollarRate)} Bs/$`, 20, payY);
+            }
+
+            // ========== FIRMA ==========
+            const signY = paymentStartY + paymentHeight + 20;
+            pdf.setFont('helvetica', 'bold');
+            pdf.text("Beatriz Veiga", pageWidth / 2, signY, { align: 'center' });
+            pdf.text("Presidente", pageWidth / 2, signY + 6, { align: 'center' });
+            pdf.setFont('helvetica', 'normal');
+            pdf.text("Tel: (58) 414-7327301", pageWidth / 2, signY + 12, { align: 'center' });
+
+            // ========== FOOTER ==========
+            pdf.setFontSize(8);
+            pdf.setTextColor(100, 100, 100);
+            const footerY = pageHeight - 10;
+            pdf.text("Suministros Meygo, C.A. - Especialistas en suministros industriales y de oficina", pageWidth / 2, footerY - 10, { align: 'center' });
+            pdf.text("Email: suministrosmeygo.ca@gmail.com", pageWidth / 2, footerY - 5, { align: 'center' });
+
+            // ========== GUARDAR PDF ==========
+            const fileName = `${documentTitle.toLowerCase()}_${controlNumber.replace('/', '_')}_${clientName.replace(/\s+/g, '_')}.pdf`;
+            pdf.save(fileName);
 
             // Guardar en Historial
             saveToHistory({
@@ -2096,30 +2194,154 @@
                 type: documentType,
                 number: controlNumber,
                 client: clientName,
-                total: currentPaymentMethod === 'bolivares' ? `BS ${formatNumber(totalBS)}` : `$${formatNumber(totalUSD)}`,
-                productsSnapshot: JSON.parse(JSON.stringify(products)),
-                clientSnapshot: {
-                    name: clientName,
-                    address: clientAddress,
-                    rif: clientRIF
-                }
+                total: currentPaymentMethod === 'bolivares' ? `BS ${formatNumber(totalBS)}` : 
+                       currentPaymentMethod === 'dolares' ? `$${formatNumber(totalUSD)}` :
+                       `$${formatNumber(totalUSD)} | BS ${formatNumber(totalBS)}`,
+                productsCount: products.length,
+                paymentMethod: currentPaymentMethod
             });
 
             // Incrementar contador después de generar PDF
             controlNumbers[currentDocType] = parseInt(controlNumbers[currentDocType]) + 1;
-            saveToGitHub();
+            saveToLocalStorage();
             updateControlNumberDisplay();
+            
+            showStatus('PDF generado y descargado correctamente');
         }
 
+        // ==========================================
+        // FUNCIONES DE HISTORIAL
+        // ==========================================
 
-        // Función para limpiar todo
+        function saveToHistory(docData) {
+            if (!persistentData.documents) persistentData.documents = [];
+            persistentData.documents.unshift({
+                ...docData,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Mantener solo los últimos 100 documentos
+            if (persistentData.documents.length > 100) {
+                persistentData.documents = persistentData.documents.slice(0, 100);
+            }
+            
+            saveToLocalStorage();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (!list) return;
+
+            if (!persistentData.documents || persistentData.documents.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No hay documentos recientes</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            persistentData.documents.slice(0, 10).forEach((doc, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.style.padding = '10px';
+                item.style.borderBottom = '1px solid #eee';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.style.cursor = 'pointer';
+                item.style.backgroundColor = index % 2 === 0 ? '#fff' : '#f9f9f9';
+                item.style.transition = 'background-color 0.3s';
+
+                item.onmouseenter = () => item.style.backgroundColor = 'var(--color-secondary)';
+                item.onmouseleave = () => item.style.backgroundColor = index % 2 === 0 ? '#fff' : '#f9f9f9';
+
+                let iconClass = 'fa-file';
+                if (doc.type === 'factura') iconClass = 'fa-receipt';
+                else if (doc.type === 'presupuesto') iconClass = 'fa-file-invoice-dollar';
+                else if (doc.type === 'nota') iconClass = 'fa-truck';
+
+                // Icono de método de pago
+                let paymentIcon = 'fa-dollar-sign';
+                if (doc.paymentMethod === 'bolivares') paymentIcon = 'fa-bolt';
+                else if (doc.paymentMethod === 'mixto') paymentIcon = 'fa-exchange-alt';
+
+                // Formatear fecha
+                const dateObj = new Date(doc.timestamp || doc.date);
+                const formattedDate = dateObj.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                item.innerHTML = `
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas ${iconClass}" style="color: var(--color-primary);"></i>
+                            <strong style="color: var(--color-primary); font-size: 13px;">${doc.number}</strong>
+                            <i class="fas ${paymentIcon}" style="color: #666; font-size: 11px;"></i>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                            <div>${doc.client}</div>
+                            <div style="font-size: 11px;">${formattedDate} • ${doc.productsCount || 0} productos</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; font-size: 12px; color: var(--color-primary);">${doc.total}</div>
+                        <button onclick="event.stopPropagation(); loadHistoryItem(${index})" 
+                                style="margin-top: 5px; padding: 4px 8px; font-size: 11px; background: var(--color-info); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-redo"></i> Cargar
+                        </button>
+                    </div>
+                `;
+
+                // Al hacer clic en el item, mostrar detalles
+                item.onclick = () => showHistoryDetails(index);
+                
+                list.appendChild(item);
+            });
+
+            // Mostrar contador total
+            if (persistentData.documents.length > 10) {
+                const moreItem = document.createElement('div');
+                moreItem.style.textAlign = 'center';
+                moreItem.style.padding = '10px';
+                moreItem.style.color = 'var(--color-primary)';
+                moreItem.style.fontSize = '12px';
+                moreItem.textContent = `+${persistentData.documents.length - 10} documentos más...`;
+                list.appendChild(moreItem);
+            }
+        }
+
+        // Función para mostrar detalles del historial (global para acceso desde HTML)
+        window.showHistoryDetails = function(index) {
+            if (index >= 0 && index < persistentData.documents.length) {
+                const doc = persistentData.documents[index];
+                alert(`Detalles del documento:\n\n` +
+                      `Tipo: ${doc.type.toUpperCase()}\n` +
+                      `Número: ${doc.number}\n` +
+                      `Cliente: ${doc.client}\n` +
+                      `Fecha: ${doc.date}\n` +
+                      `Método de Pago: ${doc.paymentMethod ? doc.paymentMethod.toUpperCase() : 'No especificado'}\n` +
+                      `Total: ${doc.total}\n` +
+                      `Productos: ${doc.productsCount || 'No disponible'}`);
+            }
+        };
+
+        // Función para cargar documento del historial
+        window.loadHistoryItem = function(index) {
+            if (confirm('¿Desea cargar este documento? Se reemplazarán los datos actuales.')) {
+                // Aquí puedes implementar la lógica para cargar datos específicos
+                // Por ahora, solo cargamos información básica
+                const doc = persistentData.documents[index];
+                document.getElementById('clientName').value = doc.client || '';
+                showStatus('Datos del cliente cargados desde historial');
+            }
+        };
+
+        // Función para limpiar todo el documento actual
         function clearAll() {
-            if (confirm('¿Está seguro de que desea limpiar todo el documento?')) {
+            if (confirm('¿Está seguro de que desea limpiar todo el documento actual?')) {
                 products = [];
                 document.getElementById('productsList').innerHTML = '';
-                document.getElementById('clientName').value = '';
-                document.getElementById('clientAddress').value = '';
-                document.getElementById('clientRIF').value = '';
                 document.getElementById('productName').value = '';
                 document.getElementById('productQuantity').value = '1';
                 document.getElementById('productUnit').value = '';
@@ -2128,79 +2350,231 @@
 
                 // Incrementar el número de control al limpiar/finalizar
                 controlNumbers[currentDocType] = parseInt(controlNumbers[currentDocType]) + 1;
-
-                // Actualizar display para el SIGUIENTE
                 updateControlNumberDisplay();
-
-                // Guardar los números de control actualizados (Local y Nube)
-                saveToGitHub();
-
+                saveToLocalStorage();
                 updateTotals();
                 updateTableStructure();
+                
+                showStatus('Documento limpiado, número de control actualizado');
             }
         }
-        // --- FUNCIONES DE HISTORIAL ---
 
-        function saveToHistory(docData) {
-            if (!persistentData.documents) persistentData.documents = [];
-            persistentData.documents.unshift(docData);
-            if (persistentData.documents.length > 50) persistentData.documents.pop();
-            renderHistory();
-        }
+        // ==========================================
+        // INICIALIZACIÓN DE LA APLICACIÓN
+        // ==========================================
 
-        function renderHistory() {
-            const list = document.getElementById('historyList');
-            if (!list) return; // Si no existe el UI no hacemos nada
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar elementos
+            const addProductBtn = document.getElementById('addProduct');
+            const generatePDFBtn = document.getElementById('generatePDF');
+            const clearAllBtn = document.getElementById('clearAll');
+            const dollarRateInput = document.getElementById('dollarRate');
+            const ivaPercentageInput = document.getElementById('ivaPercentage');
+            const docTypeButtons = document.querySelectorAll('.doc-type-btn');
+            const paymentMethods = document.querySelectorAll('.payment-method');
+            const editControlBtn = document.getElementById('editControlBtn');
+            const controlNumberModal = document.getElementById('controlNumberModal');
+            const closeModal = document.getElementById('closeModal');
+            const saveControlNumber = document.getElementById('saveControlNumber');
+            const cancelControlNumber = document.getElementById('cancelControlNumber');
+            const controlNumberInputModal = document.getElementById('controlNumberInput');
+            const clientSelect = document.getElementById('clientSelect');
+            const clearClientBtn = document.getElementById('clearClientBtn');
+            const saveClientBtn = document.getElementById('saveClientBtn');
+            const editPaymentInfoBtn = document.getElementById('editPaymentInfoBtn');
+            const paymentInfoModal = document.getElementById('paymentInfoModal');
+            const closePaymentModal = document.getElementById('closePaymentModal');
+            const savePaymentInfoModal = document.getElementById('savePaymentInfoModal');
+            const addPaymentLineBtn = document.getElementById('addPaymentLineBtn');
+            const addSupplierProductBtn = document.getElementById('addSupplierProduct');
+            const catalogSelect = document.getElementById('catalogSelect');
+            const backupDataBtn = document.getElementById('backupData');
+            const restoreDataBtn = document.getElementById('restoreData');
+            const clearAllDataBtn = document.getElementById('clearAllData');
 
-            if (!persistentData.documents || persistentData.documents.length === 0) {
-                list.innerHTML = '<div style="text-align: center; color: #888;">No hay documentos recientes</div>';
-                return;
-            }
+            // Cargar datos desde localStorage al iniciar
+            loadFromLocalStorage();
 
-            list.innerHTML = '';
-            persistentData.documents.forEach((doc, index) => {
-                const item = document.createElement('div');
-                item.style.padding = '8px';
-                item.style.borderBottom = '1px solid #eee';
-                item.style.display = 'flex';
-                item.style.justifyContent = 'space-between';
-                item.style.alignItems = 'center';
-                item.style.backgroundColor = index % 2 === 0 ? '#fff' : '#f9f9f9';
-
-                let iconClass = 'fa-file';
-                if (doc.type === 'factura') iconClass = 'fa-receipt';
-                else if (doc.type === 'presupuesto') iconClass = 'fa-file-invoice-dollar';
-                else if (doc.type === 'nota') iconClass = 'fa-truck';
-
-                item.innerHTML = `
-                <div style="flex: 1;">
-                    <div><strong style="color: var(--color-primary);"><i class="fas ${iconClass}"></i> ${doc.number}</strong> <span style="font-size: 11px; color: #666;">(${doc.date})</span></div>
-                    <div style="font-size: 12px;">${doc.client}</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: bold; font-size: 12px;">${doc.total}</div>
-                    <button class="btn btn-sm btn-info" onclick="loadHistoryItem(${index})" style="padding: 2px 6px; font-size: 11px; margin-top: 2px;">
-                        <i class="fas fa-redo"></i>
-                    </button>
-                </div>
-            `;
-                list.appendChild(item);
+            // Event Listeners
+            addProductBtn.addEventListener('click', addProduct);
+            generatePDFBtn.addEventListener('click', function () {
+                const docTypeText = document.querySelector('.doc-type-btn.active').textContent;
+                if (confirm(`¿Está seguro que desea generar el ${docTypeText}?`)) {
+                    generatePDF(currentDocType);
+                }
             });
-        }
-
-        window.loadHistoryItem = function (index) {
-            if (confirm('¿Desea CARGAR este documento? Se reemplazarán los datos actuales.')) {
-                const doc = persistentData.documents[index];
-                document.getElementById('clientName').value = doc.clientSnapshot.name || '';
-                document.getElementById('clientAddress').value = doc.clientSnapshot.address || '';
-                document.getElementById('clientRIF').value = doc.clientSnapshot.rif || '';
-                products = JSON.parse(JSON.stringify(doc.productsSnapshot));
-                updateProductsTable();
+            clearAllBtn.addEventListener('click', clearAll);
+            
+            // Actualizar tasas y recalcular
+            dollarRateInput.addEventListener('input', function() {
+                if (currentPaymentMethod === 'mixto') {
+                    // Solo recalcular si es pago mixto
+                    updateTotals();
+                    updateProductsTable();
+                    updateDisplay();
+                }
+                saveToLocalStorage();
+            });
+            
+            ivaPercentageInput.addEventListener('input', function() {
                 updateTotals();
-                alert('Datos cargados. Verifique el Número de Control.');
+                saveToLocalStorage();
+            });
+
+            // Cambiar tipo de documento
+            docTypeButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    docTypeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    changeDocumentType(this.getAttribute('data-doctype'));
+                });
+            });
+
+            // Cambiar método de pago
+            paymentMethods.forEach(method => {
+                method.addEventListener('click', function () {
+                    const newPaymentMethod = this.getAttribute('data-payment');
+                    
+                    if (changePaymentMethod(newPaymentMethod)) {
+                        paymentMethods.forEach(m => m.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                });
+            });
+
+            // Modal para editar número de control
+            editControlBtn.addEventListener('click', function () {
+                controlNumberInputModal.value = document.getElementById('controlNumberDisplay').textContent;
+                controlNumberModal.style.display = 'flex';
+            });
+
+            closeModal.addEventListener('click', function () {
+                controlNumberModal.style.display = 'none';
+            });
+
+            cancelControlNumber.addEventListener('click', function () {
+                controlNumberModal.style.display = 'none';
+            });
+
+            saveControlNumber.addEventListener('click', function () {
+                if (controlNumberInputModal.value.trim()) {
+                    // Actualizar número de control manualmente
+                    const newNumber = controlNumberInputModal.value.trim();
+                    document.getElementById('controlNumberDisplay').textContent = newNumber;
+                    controlNumberModal.style.display = 'none';
+                    showStatus('Número de control actualizado manualmente');
+                } else {
+                    alert('Por favor ingrese un número de control válido');
+                }
+            });
+
+            // Gestión de clientes
+            clientSelect.addEventListener('change', function () {
+                const selectedIndex = parseInt(this.value);
+                if (!isNaN(selectedIndex) && selectedIndex >= 0) {
+                    loadClientData(selectedIndex);
+                }
+            });
+
+            clearClientBtn.addEventListener('click', function () {
+                clientSelect.value = '';
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientAddress').value = '';
+                document.getElementById('clientRIF').value = '';
+            });
+
+            saveClientBtn.addEventListener('click', saveCurrentClient);
+
+            // Guardar Tasa Dólar al cambiar
+            dollarRateInput.addEventListener('change', function () {
+                persistentData.dollarRate = parseFloat(this.value) || 0;
+                saveToLocalStorage();
+            });
+
+            // Lógica Modal Payment Info
+            editPaymentInfoBtn.addEventListener('click', function () {
+                const list = document.getElementById('paymentLinesList');
+                list.innerHTML = '';
+                persistentData.paymentInfo.forEach(text => {
+                    addPaymentLineInput(text);
+                });
+                paymentInfoModal.style.display = 'flex';
+            });
+
+            closePaymentModal.addEventListener('click', () => paymentInfoModal.style.display = 'none');
+
+            addPaymentLineBtn.addEventListener('click', () => addPaymentLineInput(''));
+
+            savePaymentInfoModal.addEventListener('click', function () {
+                const inputs = document.querySelectorAll('#paymentLinesList input');
+                const newLines = [];
+                inputs.forEach(input => {
+                    if (input.value.trim()) newLines.push(input.value.trim());
+                });
+                persistentData.paymentInfo = newLines;
+                saveToLocalStorage();
+                renderPaymentInfo();
+                paymentInfoModal.style.display = 'none';
+                showStatus('Información de pago actualizada');
+            });
+
+            function addPaymentLineInput(value) {
+                const div = document.createElement('div');
+                div.className = 'form-group checkbox-group';
+                div.style.marginBottom = '10px';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = value;
+                input.placeholder = 'Información de pago...';
+                input.style.flex = '1';
+
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-danger';
+                btn.innerHTML = '<i class="fas fa-trash"></i>';
+                btn.style.padding = '5px 10px';
+                btn.onclick = () => div.remove();
+
+                div.appendChild(input);
+                div.appendChild(btn);
+
+                document.getElementById('paymentLinesList').appendChild(div);
             }
-        };
+
+            // Gestión de catálogo
+            addSupplierProductBtn.addEventListener('click', addToCatalog);
+            
+            catalogSelect.addEventListener('change', function() {
+                const selectedIndex = parseInt(this.value);
+                if (!isNaN(selectedIndex) && selectedIndex >= 0) {
+                    loadProductFromCatalog(selectedIndex);
+                }
+            });
+
+            // Gestión de datos
+            backupDataBtn.addEventListener('click', backupData);
+            restoreDataBtn.addEventListener('click', restoreData);
+            clearAllDataBtn.addEventListener('click', clearAllData);
+
+            // Auto-guardar cada 30 segundos
+            setInterval(() => {
+                saveToLocalStorage();
+            }, 30000);
+
+            // Auto-guardar al salir de la página
+            window.addEventListener('beforeunload', function() {
+                saveToLocalStorage();
+            });
+
+            // Actualizar visualización inicial
+            updateDisplay();
+            updateTableStructure();
+            
+            // Mostrar mensaje de bienvenida
+            setTimeout(() => {
+                showStatus('Sistema listo. Los datos se guardan automáticamente en su navegador.');
+            }, 1000);
+        });
     </script>
-
+</body>
 </html>
-
